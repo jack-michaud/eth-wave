@@ -12,14 +12,15 @@ async function main() {
   // If this script is run directly using `node` you may want to call compile
   // manually to make sure everything is compiled
   // await hre.run('compile');
+  const [owner] = await ethers.getSigners();
+  const accountBalance = await owner.getBalance();
+  console.log(`Owner account ${owner.address} has ${accountBalance.toString()}`);
 
-  // We get the contract to deploy
-  const Greeter = await ethers.getContractFactory("Greeter");
-  const greeter = await Greeter.deploy("Hello, Hardhat!");
+  const wavePortalFactory = await ethers.getContractFactory("WavePortal");
+  const wavePortal = await wavePortalFactory.deploy();
+  await wavePortal.deployed();
 
-  await greeter.deployed();
-
-  console.log("Greeter deployed to:", greeter.address);
+  console.log(`WavePortal address: ${wavePortal.address}`);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
