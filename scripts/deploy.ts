@@ -17,7 +17,7 @@ async function main() {
   console.log(`Owner account ${owner.address} has ${accountBalance.toString()}`);
 
   const wavePortalFactory = await ethers.getContractFactory("WavePortal");
-  const wavePortal = await wavePortalFactory.deploy();
+  const wavePortal = await wavePortalFactory.deploy({ value: ethers.utils.parseEther("0.001")});
   await wavePortal.deployed();
 
   console.log(`WavePortal address: ${wavePortal.address}`);

@@ -2,6 +2,7 @@ import chai, { expect } from "chai";
 import { ethers } from "hardhat";
 
 import chaiAsPromised from 'chai-as-promised';
+import { hrtime } from "process";
 
 chai.use(chaiAsPromised);
 
@@ -17,7 +18,7 @@ describe("WavePortal", function () {
     const [owner, randomPerson] = await ethers.getSigners();
 
     const waveContractFactory = await ethers.getContractFactory("WavePortal");
-    const waveContract = await waveContractFactory.deploy();
+    const waveContract = await waveContractFactory.deploy({ value: ethers.utils.parseEther("0.1") });
     await waveContract.deployed();
 
     expect(await waveContract.getTotalWaves()).to.equal(0);
@@ -37,20 +38,34 @@ describe("WavePortal", function () {
     const [owner, randomPerson] = await ethers.getSigners();
 
     const waveContractFactory = await ethers.getContractFactory("WavePortal");
-    const waveContract = await waveContractFactory.deploy();
+    const waveContract = await waveContractFactory.deploy({ value: ethers.utils.parseEther("0.1") });
     await waveContract.deployed();
 
     expect(await waveContract.getTotalWaves()).to.equal(0);
 
-    // Should throw because this is an invalid index.
-    expect(waveContract.getWave(0)).to.be.rejectedWith();
+    expect((await waveContract.getAllWaves()).length).to.be.equal(0);
 
     let transaction = await waveContract.connect(randomPerson).wave();
     await transaction.wait();
 
-    const [ownerAddress, amount, timestamp] = await waveContract.getWave(0);
+    const waves = await waveContract.getAllWaves();
+    expect(waves.length).to.be.equal(1);
+    expect(waves[0].owner).to.be.equal(randomPerson.address);
+  });
 
-    expect(ownerAddress).to.be.equal(randomPerson.address);
-    expect(amount).to.be.equal(0);
+  it("pays out 0.0001 ether sometimes", async function () {
+    // Nondeterministic. Kinda hard to test.
+  });
+  it("limits the amount of times a single person can wave", async function () {
+    const [owner, randomPerson] = await ethers.getSigners();
+
+    const waveContractFactory = await ethers.getContractFactory("WavePortal");
+    const waveContract = await waveContractFactory.deploy({ value: ethers.utils.parseEther("0.1") });
+    await waveContract.deployed();
+
+    let transaction = await waveContract.connect(randomPerson).wave();
+    await transaction.wait();
+
+    expect(waveContract.connect(randomPerson).wave()).to.be.rejectedWith();
   });
 });
